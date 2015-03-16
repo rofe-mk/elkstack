@@ -4,7 +4,7 @@ require_relative 'spec_helper'
 
 describe 'elkstack::cluster' do
   let(:chef_run) do
-    stub_resources(false)
+    stub_resources
     ChefSpec::SoloRunner.new(platform: 'redhat', version: '6.5') do |node|
       node.set['cpu']['total'] = 8
       node.set['memory']['total'] = 4096
@@ -88,8 +88,8 @@ describe 'elkstack::cluster' do
     expect(chef_run).to create_cron_d('elkstack-elasticsearch-backup')
   end
 
-  it 'does not create lumberjack key and certificate files' do
-    expect(chef_run).to_not create_file('/opt/logstash/lumberjack.key')
-    expect(chef_run).to_not create_file('/opt/logstash/lumberjack.crt')
+  it 'creates lumberjack key and certificate files' do
+    expect(chef_run).to create_file('/opt/logstash/lumberjack.key')
+    expect(chef_run).to create_file('/opt/logstash/lumberjack.crt')
   end
 end

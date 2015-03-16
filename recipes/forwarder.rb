@@ -31,6 +31,7 @@ elk_nodes.split(',').each do |new_node|
 end
 node.set['logstash_forwarder']['config']['network']['servers'] = forwarder_servers
 
+node.run_state['elkstack_forwarder_enabled'] = true
 include_recipe 'elkstack::_secrets'
 unless node.run_state['lumberjack_decoded_certificate'].nil? || node.run_state['lumberjack_decoded_certificate'].nil?
   node.set['logstash_forwarder']['config']['network']['ssl certificate'] = "#{node['logstash']['instance_default']['basedir']}/lumberjack.crt"

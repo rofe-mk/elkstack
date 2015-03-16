@@ -48,6 +48,7 @@ provisioner:
         # and comes up green (healthy) instead of yellow
     elkstack:
       config:
+        lumberjack_data_bag: 'please_dont_exist'
         kibana:
           password: 'kibana'
 
@@ -63,9 +64,7 @@ platforms:
     - recipe[yum]
 
 suites:
-  - name: default # server
-    data_bags_path: "test/integration/default/data_bags"
-    encrypted_data_bag_secret_key_path: "test/integration/default/encrypted_data_bag_secret"
+  - name: default # server with syslog protocol (no data bags with certs, using java agent)
     run_list:
       - recipe[elkstack::java]
       - recipe[elkstack::cluster] # not testing single, it's practically the same
@@ -75,7 +74,19 @@ suites:
           zen:
             minimum_master_nodes: 1 # since search returns more than one, but they are fake
 
-  - name: agent
+  - name: lumberjack # server with lumberjack protocol
+    data_bags_path: "test/integration/data_bags"
+    encrypted_data_bag_secret_key_path: "test/integration/encrypted_data_bag_secret"
+    run_list:
+      - recipe[elkstack::java]
+      - recipe[elkstack::cluster] # not testing single, it's practically the same
+    attributes:
+      elasticsearch:
+        discovery:
+          zen:
+            minimum_master_nodes: 1 # since search returns more than one, but they are fake
+
+  - name: agent # client
     data_bags_path: "test/integration/agent/data_bags"
     encrypted_data_bag_secret_key_path: "test/integration/agent/encrypted_data_bag_secret"
     run_list:
@@ -83,7 +94,7 @@ suites:
       - recipe[elkstack::java]
       - recipe[elkstack::agent]
 
-  - name: forwarder
+  - name: forwarder # golang client
     data_bags_path: "test/integration/agent/data_bags"
     encrypted_data_bag_secret_key_path: "test/integration/agent/encrypted_data_bag_secret"
     run_list:

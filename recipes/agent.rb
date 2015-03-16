@@ -58,11 +58,20 @@ template_variables = {
   output_lumberjack_port: 5960,
   input_syslog_host: '127.0.0.1',
   input_syslog_port: 5959,
+  output_syslog_host: elk_nodes.split(',').first,
+  output_syslog_port: 5959,
   chef_environment: node.chef_environment
 }
 
 include_recipe 'elkstack::_secrets'
-unless node.run_state['lumberjack_decoded_certificate'].nil? || node.run_state['lumberjack_decoded_certificate'].nil?
+if node.run_state['lumberjack_decoded_certificate'].nil? || node.run_state['lumberjack_decoded_certificate'].nil?
+  my_templates['output_syslog'] = 'logstash/output_syslog.conf.erb'
+
+  # if we end up doing syslog as the main transport, don't route agent syslog through logstash,
+  # send it right to the remote host directly.
+  node.default['rsyslog']['server_ip'] = template_variables[:output_syslog_host]
+  node.default['rsyslog']['server_ip'] = template_variables[:input_syslog_port]
+else
   my_templates['output_lumberjack'] = 'logstash/output_lumberjack.conf.erb'
   template_variables['output_lumberjack_ssl_certificate'] = "#{node['logstash']['instance_default']['basedir']}/lumberjack.crt"
   # template_variables['output_lumberjack_ssl_key'] = "#{node['logstash']['instance_default']['basedir']}/lumberjack.key"

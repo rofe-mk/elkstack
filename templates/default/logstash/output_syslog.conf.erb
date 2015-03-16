@@ -1,0 +1,16 @@
+output {
+  syslog {
+    # appname => ... # string (optional), default: "LOGSTASH"
+    codec => "json" # codec (optional), default: "plain"
+    facility => "local7" # string, one of ["kernel", "user-level", "mail", "daemon", "security/authorization", "syslogd", "line printer", "network news", "uucp", "clock", "security/authorization", "ftp", "ntp", "log audit", "log alert", "clock", "local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7"] (required)
+    host => <%= @output_syslog_host %> # string (required)
+    # msgid => ... # string (optional), default: "-"
+    port => <% @output_syslog_port %> # number (required)
+    # procid => ... # string (optional), default: "-"
+    # protocol => ... # string, one of ["tcp", "udp"] (optional), default: "udp"
+    # rfc => ... # string, one of ["rfc3164", "rfc5424"] (optional), default: "rfc3164"
+    severity => "informational" # string, one of ["emergency", "alert", "critical", "error", "warning", "notice", "informational", "debug"] (required)
+    # sourcehost => ... # string (optional), default: "%{host}"
+    # workers => ... # number (optional), default: 1
+  }
+}

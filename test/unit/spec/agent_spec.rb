@@ -4,7 +4,7 @@ require_relative 'spec_helper'
 
 describe 'elkstack::agent' do
   let(:chef_run) do
-    stub_resources
+    stub_resources(false)
     ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '12.04') do |node|
       node.set['cpu']['total'] = 8
       node.set['memory']['total'] = 4096
@@ -32,9 +32,9 @@ describe 'elkstack::agent' do
     expect(chef_run).to create_logstash_config('agent')
   end
 
-  it 'creates lumberjack key and certificate files' do
-    expect(chef_run).to create_file('/opt/logstash/lumberjack.key')
-    expect(chef_run).to create_file('/opt/logstash/lumberjack.crt')
+  it 'does not create lumberjack key and certificate files' do
+    expect(chef_run).to_not create_file('/opt/logstash/lumberjack.key')
+    expect(chef_run).to_not create_file('/opt/logstash/lumberjack.crt')
   end
 end
 

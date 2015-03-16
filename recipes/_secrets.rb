@@ -14,6 +14,7 @@ lumberjack_secrets = nil
 begin
   lumberjack_secrets = Chef::EncryptedDataBagItem.load(lumberjack_data_bag, 'secrets')
   lumberjack_secrets.to_hash # access it to force an error to be raised
+  Chef::Log.info("Successfully loaded encrypted data bag item #{lumberjack_data_bag}/secrets")
 rescue
   Chef::Log.warn("Could not find encrypted data bag item #{lumberjack_data_bag}/secrets")
   lumberjack_secrets = nil
@@ -24,6 +25,7 @@ if lumberjack_secrets.nil?
   begin
     lumberjack_secrets = Chef::DataBagItem.load(lumberjack_data_bag, 'secrets')
     lumberjack_secrets.to_hash
+    Chef::Log.info("Successfully loaded un-encrypted data bag item #{lumberjack_data_bag}/secrets")
   rescue
     Chef::Log.warn("Could not find un-encrypted data bag item #{lumberjack_data_bag}/secrets")
     lumberjack_secrets = nil
@@ -31,7 +33,7 @@ if lumberjack_secrets.nil?
 end
 
 # generate our own keypair since we don't seem to have one
-if lumberjack_secrets.nil?
+if lumberjack_secrets.nil? && node.run_state['elkstack_forwarder_enabled']
   Chef::Log.warn("Generating a new lumberjack keypair and data bag item #{lumberjack_data_bag}/secrets")
   cert_file = "#{Chef::Config[:file_cache_path]}/lumberjack.crt"
   key_file = "#{Chef::Config[:file_cache_path]}/lumberjack.key"
@@ -73,12 +75,17 @@ if lumberjack_secrets.nil?
   lumberjack_secrets.data_bag(lumberjack_data_bag)
   lumberjack_secrets.raw_data = secrets
   lumberjack_secrets.save
+
+  Chef::Log.info("Successfully generated our own lumberjack data bag items #{lumberjack_data_bag}/secrets")
 end
 
 # now try to use the data bag
 if !lumberjack_secrets.nil? && lumberjack_secrets['key'] && lumberjack_secrets['certificate']
+  Chef::Log.info("Attempted to use data bag items key and certificate from #{lumberjack_data_bag}/secrets")
   node.run_state['lumberjack_decoded_key'] = Base64.decode64(lumberjack_secrets['key'])
   node.run_state['lumberjack_decoded_certificate'] = Base64.decode64(lumberjack_secrets['certificate'])
+elsif !node.run_state['elkstack_forwarder_enabled']
+  Chef::Log.warn('Did not see that a logstash forwarder was in use, so I will proceed with ignoring missing key and certificate')
 elsif !lumberjack_secrets.nil?
   fail 'Found a data bag for lumberjack secrets, but it was missing \'key\' and \'certificate\' data bag items'
 elsif lumberjack_secrets.nil?
