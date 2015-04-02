@@ -3,14 +3,6 @@
 # Cookbook Name:: elkstack
 # Recipe:: kibana
 #
-# Copyright 2014, Rackspace
-#
-
-# base stack requirements
-include_recipe 'elkstack::_server'
-
-# setup nginx then kibana ()
-node.override['nginx']['repo_source'] = 'epel' if rhel?
 
 # configure / prepare an SSL cert and default htpassword
 include_recipe 'elkstack::kibana_ssl'
